@@ -1,0 +1,9 @@
+streamlit
+openai
+pandas
+faker
+adversarial-robustness-toolbox
+scikit-learn
+fairlearn
+aequitas
+prometheus-client
