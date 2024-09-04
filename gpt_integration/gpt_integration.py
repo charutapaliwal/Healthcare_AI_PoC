@@ -1,16 +1,20 @@
 import openai
-from config import OPENAI_API_KEY
+import os
+from dotenv import load_dotenv
 
-openai.api_key = OPENAI_API_KEY
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def generate_diagnosis(patient_info):
-    prompt = f"Patient data: {patient_info}. Based on this, what is the most likely diagnosis?"
-    response = openai.Completion.create(
-        engine="text-davinci-003",  # GPT-4 model
-        prompt=prompt,
-        max_tokens=150
+    prompt = f"Patient data: {patient_info}. Based on this, what is the most likely diagnosis and what medication can you suggest?"
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-0125",  
+        messages = [
+            {'role':"system", 'content':prompt}
+        ],
+        temperature = 0
     )
-    diagnosis = response.choices[0].text.strip()
+    diagnosis = response.choices[0].message.content.strip()
     return diagnosis
 
 if __name__ == "__main__":
@@ -18,9 +22,10 @@ if __name__ == "__main__":
     example_patient = {
         'Age': 45,
         'Gender': 'Male',
-        'Symptoms': 'persistent cough, shortness of breath',
+        'Symptoms': 'Fever, chills, cold ',
         'Previous_Diagnosis': 'None',
         'Current_Medication': 'None',
-        'Lab_Results': 78
+        'Blood_Pressure': '120/80',
+        'BMI':23
     }
     print(generate_diagnosis(example_patient))

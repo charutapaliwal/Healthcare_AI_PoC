@@ -1,5 +1,5 @@
 streamlit
-openai
+openai==1.43.0
 pandas
 faker
 adversarial-robustness-toolbox
@@ -7,3 +7,5 @@ scikit-learn
 fairlearn
 aequitas
 prometheus-client
+python-dotenv
+weaviate-client
