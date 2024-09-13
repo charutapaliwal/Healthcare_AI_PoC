@@ -1,5 +1,9 @@
 import requests
-from config import LLM_GUARD_API_KEY
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+LLM_GUARD_API_KEY=os.getenv("LLM_GUARD_API_KEY")
 
 def apply_guardrails(diagnosis):
     api_url = "https://api.llmguard.io/v1/guardrails"

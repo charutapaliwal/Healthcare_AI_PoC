@@ -19,6 +19,7 @@ def detect_model_bias(X, y_true, sensitive_feature):
     MetricFrame: Bias detection results
     """
     # Generate predictions
+    model.fit(X,y_true)
     y_pred = model.predict(X)
 
     # Create a MetricFrame to analyze bias
@@ -36,7 +37,7 @@ if __name__ == "__main__":
     # Example usage for testing (replace with actual data)
     data = {
         'Age': [34, 45, 23, 45],
-        'Gender': ['Male', 'Female', 'Female', 'Male'],
+        'Gender': [0,1,1,1],
         'Symptoms_Length': [3, 4, 2, 5],
         'Lab_Results': [78, 65, 88, 90]
     }

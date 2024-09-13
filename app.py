@@ -1,74 +1,96 @@
 import streamlit as st
-from data.synthetic_data import generate_synthetic_data
-from gpt.gpt_integration import generate_diagnosis
-from guardrails.guardrails_integration import apply_guardrails
-from red_team.red_team_integration import red_team_attack
-from bias_detection.model_bias import detect_model_bias
-from bias_detection.data_bias import detect_data_bias
-from risk_assessment.ai_risk_questionnaire import ai_risk_questionnaire
-from monitoring.prometheus_monitoring import (
-    start_prometheus_server, process_request,
-    record_bias_alert, record_guardrail_trigger,
-    record_red_teaming_alert, record_data_privacy_alert,
-    record_regulatory_compliance_check
-)
+import openai
+import os
+from dotenv import load_dotenv
+import tracemalloc
+from gpt_integration.gpt_integration import generate_diagnosis
+import time
+import warnings
+import chromadb
+from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 
-st.title("Trustworthy AI Healthcare Diagnostics")
+warnings.filterwarnings("ignore",category=Warning)
 
-# Start Prometheus monitoring server
-start_prometheus_server()
+tracemalloc.start()
 
-# Generate synthetic data
-patient_data = generate_synthetic_data()
-st.write("## Synthetic Patient Data")
-st.dataframe(patient_data)
+load_dotenv()
+openai_api_key= os.getenv('OPENAI_API_KEY') 
 
-# Select a patient and generate diagnosis
-selected_patient = st.selectbox("Select a patient", patient_data['Patient_ID'].tolist())
-patient_info = patient_data[patient_data['Patient_ID'] == selected_patient].iloc[0]
-st.write(f"Patient Info: {patient_info.to_dict()}")
+EMBEDDING_MODEL = 'text-embedding-3-small'
+if os.getenv("OPENAI_API_KEY") is not None:
+    openai_ef = OpenAIEmbeddingFunction(api_key=openai_api_key, model_name=EMBEDDING_MODEL)
+else:
+    print("OPENAI_API_KEY environment variable not found.")
 
-if st.button("Generate Diagnosis"):
-    process_request()  # Record the metrics for this request
-    diagnosis = generate_diagnosis(patient_info.to_dict())
-    st.write(f"Generated Diagnosis: {diagnosis}")
+client = chromadb.PersistentClient('./data/chroma')
+pdata = client.get_collection("PatientData",embedding_function=openai_ef)
 
-    # Apply guardrails
-    guardrail_result = apply_guardrails(diagnosis)
-    st.write(f"Guardrails Result: {guardrail_result}")
+def stream_data(data):
+    for word in data.split(" "):
+        yield word + " "
+        time.sleep(0.02)
 
-    if guardrail_result.get("guardrail_triggered"):
-        record_guardrail_trigger()  # Increment guardrails triggered counter
+try:
+    # Streamlit UI
+    st.set_page_config(layout = 'wide', page_title='Trustaworthy AI Healthcare Diagnostics')
 
-if st.button("Simulate Red Teaming"):
-    process_request()  # Record the metrics for this request
-    adversarial_example = red_team_attack(patient_info.to_dict())
-    st.write(f"Adversarial Example Data: {adversarial_example}")
-    record_red_teaming_alert()  # Increment red teaming alert counter
+    # Main Tabs: Chat and TWAI Components
+    tab1, tab2 = st.tabs(["Chat", "TWAI Components"])
 
-if st.button("Check for Model Bias"):
-    process_request()  # Record the metrics for this request
-    y_true = patient_data['Lab_Results'].apply(lambda x: 1 if x > 70 else 0)
-    metrics, dpd = detect_model_bias(patient_data, y_true, 'Gender')
-    st.write(f"Model Bias Results: {metrics}")
-    st.write(f"Demographic Parity Difference: {dpd}")
+    with tab1:
+        st.header("Chat with Physician Agent")
 
-    if dpd > 0.1:  # Example threshold for bias alert
-        record_bias_alert()  # Increment bias alert counter
+        input_query = st.chat_input("Enter your query")
+        if input_query:
+            with st.spinner("Processing query ..."):
+                #semantic search with chroma
+                search_result=pdata.query(
+                    query_texts=input_query,
+                    n_results=2,
+                    include=['documents']
+                )
+                print(search_result)
+                # Extract and prepare context from search result
+                context = []
+                for obj in search_result["documents"]:
+                    context.append(obj)
+                diagnosis = generate_diagnosis(context,input_query)
+                st.chat_message('user').write_stream(stream_data(diagnosis))
+        if st.button("Activate Guardrails"):
+            pass
 
-if st.button("Check for Data Bias"):
-    process_request()  # Record the metrics for this request
-    bias_results = detect_data_bias(patient_data)
-    st.write(f"Data Bias Detection Results: {bias_results}")
+    with tab2:
+        st.header("TWAI Components")
 
-if st.button("Complete AI Risk Questionnaire"):
-    process_request()  # Record the metrics for this request
-    risk_results = ai_risk_questionnaire()
-    st.write("## Risk Assessment Results")
-    st.json(risk_results)
+        # Sub-tabs within TWAI Components
+        sub_tab1, sub_tab2, sub_tab3 = st.tabs(["Red Teaming", "Bias Detection", "Risk Questionnaire"])
 
-    # Record any alerts based on the AI Risk Questionnaire results
-    if risk_results['Data Privacy']['Anonymization'] == 'No':
-        record_data_privacy_alert()
-    if risk_results['Regulatory Compliance']['Regulatory Adherence'] == 'No':
-        record_regulatory_compliance_check()
+        with sub_tab1:
+            data = '''
+                    The harms generative AI systems create are, in many cases, different from other forms of AI in both scope and scale. 
+                    Red teaming generative AI is specifically designed to generate harmful content that has no clear analogue in traditional software systems — 
+                    from generating demeaning stereotypes and graphic images to flat out lying. 
+                    For this application, we have demonstrated red teaming efforts with below degradation objectives (some objectives were derived from incidents of AI incident databse):
+            '''
+            st.write(data)
+            # Implement red teaming functionalities
+            if st.button("Evasion"):
+                pass
+            if st.button("Poisoning"):
+                pass
+            if st.button("Privacy Breach"):
+                pass
+            if st.button("Abuse"):
+                pass
+
+        with sub_tab2:
+            st.write("Bias Detection Component")
+            # Implement bias detection functionalities
+
+        with sub_tab3:
+            st.write("Risk Questionnaire Component")
+            # Implement risk questionnaire functionalities
+except Exception as e:
+    print(f'Exception occured on streamlit: {str(e)}')
+finally:
+    tracemalloc.stop()

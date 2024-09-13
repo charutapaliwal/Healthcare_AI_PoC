@@ -9,3 +9,6 @@ aequitas
 prometheus-client
 python-dotenv
 weaviate-client
+transformers
+chromadb
+sentence-transformers

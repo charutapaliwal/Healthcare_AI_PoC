@@ -6,4 +6,7 @@ venv/
 .venv
 .env
 rough_work.py
+app_revised.py
+*.yaml
+*.ipynb
 

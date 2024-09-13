@@ -1,12 +1,13 @@
 import openai
 import os
 from dotenv import load_dotenv
+from huggingface_hub import InferenceClient
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def generate_diagnosis(patient_info):
-    prompt = f"Patient data: {patient_info}. Based on this, what is the most likely diagnosis and what medication can you suggest?"
+def generate_diagnosis(context, input):
+    prompt = f"Analyze user query {input} and Medical Data: {context}. Based on this, provide detailed answer to the query."
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-0125",  
         messages = [
@@ -28,4 +29,5 @@ if __name__ == "__main__":
         'Blood_Pressure': '120/80',
         'BMI':23
     }
-    print(generate_diagnosis(example_patient))
+    user_input = input(f"Enter your query")
+    print(generate_diagnosis(example_patient, user_input))
