@@ -10,23 +10,28 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 data_obj = VectorizeData()
 
-def generate_diagnosis(context, input):
-    prompt = f"""You are a question answering chatbot for a general physician application who analyzes user query {input} and OPTIONAL context: {context}. 
-    user query may be about an existing patient as supported by the context or a general user query about certain symptoms.
-    Based on this, you MUST provide answer to the query.
-    REMEMBER THAT YOU ARE THE HEALTHCARE PROFESSIONAL. DO NOT ANSWER ANYTHING OUTSIDE A GENERAL PHYSICIAN'S SCOPE."""
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-0125",  
-        messages = [
-            {'role':"system", 'content':prompt}
-        ],
-        temperature = 1
-    )
-    diagnosis = response.choices[0].message.content.strip()
-    return diagnosis
+class GPTIntegration():
+    def __init__(self) -> None:
+        self.response = " "
+        self.diagnosis = " "
+    def generate_diagnosis(self,context, input):
+        prompt = f"""You are a question answering chatbot for a general physician application who analyzes user query {input} and OPTIONAL context: {context}. 
+                    user query may be about an existing patient as supported by the context or a general user query about certain symptoms.
+                    Based on this, you MUST provide answer to the query.
+                    REMEMBER THAT YOU ARE THE HEALTHCARE PROFESSIONAL."""
+        self.response = openai.chat.completions.create(
+            model="gpt-3.5-turbo-0125",  
+            messages = [
+                {'role':"system", 'content':prompt}
+            ],
+            temperature = 1
+        )
+        self.diagnosis = self.response.choices[0].message.content.strip()
+        return self.diagnosis
 
 if __name__ == "__main__":
     # Example patient data for testing
+    model = GPTIntegration()
     user_input = input(f"Enter your query")
     example_patient = data_obj.fetch_data(user_input)
-    print(generate_diagnosis(example_patient, user_input))
+    print(model.generate_diagnosis(example_patient, user_input))

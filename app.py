@@ -4,12 +4,13 @@ import os
 from dotenv import load_dotenv
 import pandas as pd
 import tracemalloc
-from gpt_integration.gpt_integration import generate_diagnosis
+from gpt_integration.gpt_integration import GPTIntegration
 import time
 import warnings
 import chromadb
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-from red_team.red_team_integration import red_teamer_llm, evaluate, red_teamer_prompt_list
+from red_team.red_team_integration import HealthcareRedTeam
+from data.vectorize_data import VectorizeData
 
 warnings.filterwarnings("ignore",category=Warning)
 
@@ -18,6 +19,7 @@ tracemalloc.start()
 load_dotenv()
 openai_api_key= os.getenv('OPENAI_API_KEY') 
 
+#chroma setup
 EMBEDDING_MODEL = 'text-embedding-3-small'
 if os.getenv("OPENAI_API_KEY") is not None:
     openai_ef = OpenAIEmbeddingFunction(api_key=openai_api_key, model_name=EMBEDDING_MODEL)
@@ -27,36 +29,28 @@ else:
 client = chromadb.PersistentClient('./data/chroma')
 pdata = client.get_collection("PatientData",embedding_function=openai_ef)
 
+#initialize instances
+data_obj=VectorizeData()
+gpt_obj=GPTIntegration()
+red_team_obj = HealthcareRedTeam()
+
 context=[]
 
+#helper functions
 def stream_data(data):
     for word in data.split(" "):
         yield word + " "
         time.sleep(0.02)
 
-def fetch_data(input_query):
-    #semantic search with chroma
-    search_result=pdata.query(
-        query_texts=input_query,
-        n_results=2,
-        include=['documents']
-    )
-    print(search_result)
-    # Extract and prepare context from search result
-    context = []
-    for obj in search_result["documents"]:
-        context.append(obj)
-    print(context)
-    return context
-
 def query_processing(question_list):
     answers_list = []
     for question in question_list:
-        context = fetch_data(question)
-        answer = generate_diagnosis(context, question)
+        context = data_obj.fetch_data(question)
+        answer = gpt_obj.generate_diagnosis(context, question)
         answers_list.append(answer)
     return answers_list
 
+# streamlit implementation
 try:
     # Streamlit UI
     st.set_page_config(layout = 'wide', page_title='Trustaworthy AI Healthcare Diagnostics')
@@ -70,8 +64,8 @@ try:
         input_query = st.chat_input("Enter your query")
         if input_query:
             with st.spinner("Processing query ..."):
-                context = fetch_data(input_query)
-                diagnosis = generate_diagnosis(context,input_query)
+                context = data_obj.fetch_data(input_query)
+                diagnosis = gpt_obj.generate_diagnosis(context,input_query)
                 st.chat_message('user').write_stream(stream_data(diagnosis))
         if st.button("Activate Guardrails"):
             pass
@@ -95,67 +89,67 @@ try:
             with col1:
                 if st.button("Toxicity / Offensive content"):
                     objective = "Toxicity / Offensive content"
-                    question_list = red_teamer_prompt_list(objective)
+                    question_list = red_team_obj.red_teamer_prompt_list(objective)
                     answers_list = query_processing(question_list)
                     with col2:
                         for question, answer in zip(question_list, answers_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",evaluate(question,answer,objective))
+                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
                 if st.button("Criminal / Illicit activities"):
                     objective = "Criminal / Illicit activities"
-                    question_list = red_teamer_prompt_list(objective)
+                    question_list = red_team_obj.red_teamer_prompt_list(objective)
                     answers_list = query_processing(question_list)
                     with col2:
                         for question, answer in zip(question_list, answers_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",evaluate(question,answer,objective))
+                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
                 if st.button("Bias Propagation"):
                     objective ="Bias Propagation"
-                    question_list = red_teamer_prompt_list(objective)
+                    question_list = red_team_obj.red_teamer_prompt_list(objective)
                     answers_list = query_processing(question_list)
                     with col2:
                         for question, answer in zip(question_list, answers_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",evaluate(question,answer,objective))
+                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
                 if st.button("Privacy and Data Security"):
                     objective = "Privacy and Data Security"
-                    question_list = red_teamer_prompt_list(objective)
+                    question_list = red_team_obj.red_teamer_prompt_list(objective)
                     answers_list = query_processing(question_list)
                     with col2:
                         for question, answer in zip(question_list, answers_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",evaluate(question,answer,objective))
+                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
                 if st.button("Off Topic"):
                     objective = "Off Topic"
-                    question_list = red_teamer_prompt_list(objective)
+                    question_list = red_team_obj.red_teamer_prompt_list(objective)
                     answers_list = query_processing(question_list)
                     with col2:
                         for question, answer in zip(question_list, answers_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",evaluate(question,answer,objective))
+                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
                 if st.button("Hallucinations"):
                     objective = "Hallucinations"
-                    question_list = red_teamer_llm("Hallucinations")
+                    question_list = red_team_obj.red_teamer_prompt_list(objective)
                     answers_list = query_processing(question_list)
                     with col2:
                         for question, answer in zip(question_list, answers_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",evaluate(question,answer,objective))
+                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
                 if st.button("Excessive Agency"):
                     objective = "Excessive Agency"
-                    question_list = red_teamer_prompt_list(objective)
+                    question_list = red_team_obj.red_teamer_prompt_list(objective)
                     answers_list = query_processing(question_list)
                     with col2:
                         for question, answer in zip(question_list, answers_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",evaluate(question,answer,objective))
+                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
         with sub_tab2:
             st.write("Bias Detection Component")
             # Implement bias detection functionalities

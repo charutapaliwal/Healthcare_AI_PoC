@@ -12,3 +12,5 @@ weaviate-client
 transformers
 chromadb
 sentence-transformers
+deepeval
+giskard
