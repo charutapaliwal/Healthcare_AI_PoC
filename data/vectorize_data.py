@@ -16,8 +16,8 @@ else:
 class VectorizeData():
 
     def __init__(self) -> None:
-        self.chroma_client = chromadb.PersistentClient()
-        self.collection = self.chroma_client.get_or_create_collection(name="PatientData", embedding_function=openai_ef)
+        self.chroma_client = chromadb.PersistentClient('./data/chroma')
+        self.collection = self.chroma_client.get_collection(name="PatientData", embedding_function=openai_ef)
 
     def vectorize_data(self):
         try:
@@ -65,6 +65,7 @@ class VectorizeData():
 
 if __name__ == "__main__":
     data_obj = VectorizeData()
+    #data_obj.vectorize_data()
     question = input("Enter your query")
     print(data_obj.fetch_data(question))
 

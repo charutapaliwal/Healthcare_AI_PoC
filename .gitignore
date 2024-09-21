@@ -10,3 +10,5 @@ app_revised.py
 *.yaml
 *.ipynb
 red_team/synthetic_redteam_prompts/20240918_085019.json
+.deepeval
+.deepeval-cache.json

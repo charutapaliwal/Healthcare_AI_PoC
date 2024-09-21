@@ -35,6 +35,7 @@ gpt_obj=GPTIntegration()
 red_team_obj = HealthcareRedTeam()
 
 context=[]
+eval_metrics = ""
 
 #helper functions
 def stream_data(data):
@@ -44,11 +45,11 @@ def stream_data(data):
 
 def query_processing(question_list):
     answers_list = []
+    context_list =[]
     for question in question_list:
-        context = data_obj.fetch_data(question)
-        answer = gpt_obj.generate_diagnosis(context, question)
-        answers_list.append(answer)
-    return answers_list
+        context_list.append(data_obj.fetch_data(question))
+        answers_list.append(gpt_obj.generate_diagnosis(context, question))
+    return context_list, answers_list
 
 # streamlit implementation
 try:
@@ -89,67 +90,89 @@ try:
             with col1:
                 if st.button("Toxicity / Offensive content"):
                     objective = "Toxicity / Offensive content"
+                    eval_metrics = "ToxicityMetric"
                     question_list = red_team_obj.red_teamer_prompt_list(objective)
-                    answers_list = query_processing(question_list)
+                    context_list, answers_list = query_processing(question_list)
                     with col2:
-                        for question, answer in zip(question_list, answers_list):
+                        for question, answer, context in zip(question_list, answers_list, context_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
+                            st.write("Context:", context)
+                            score, success, reason = red_team_obj.deep_evaluate(question,answer,context,objective,eval_metrics)
+                            st.write("Evaluation:",f"Score:{score}", f"Success:{success}", f"Reason: {reason}")
                 if st.button("Criminal / Illicit activities"):
                     objective = "Criminal / Illicit activities"
+                    eval_metrics = "Criminal"
                     question_list = red_team_obj.red_teamer_prompt_list(objective)
-                    answers_list = query_processing(question_list)
+                    context_list,answers_list = query_processing(question_list)
                     with col2:
-                        for question, answer in zip(question_list, answers_list):
+                        for question, answer, context in zip(question_list, answers_list,context_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
+                            st.write("Context:", context)
+                            score, success, reason = red_team_obj.deep_evaluate(question,answer,context,objective,eval_metrics)
+                            st.write("Evaluation:",f"Score:{score}", f"Success:{success}", f"Reason: {reason}")
                 if st.button("Bias Propagation"):
                     objective ="Bias Propagation"
+                    eval_metrics = 'BiasMetric'
                     question_list = red_team_obj.red_teamer_prompt_list(objective)
-                    answers_list = query_processing(question_list)
+                    context_list,answers_list = query_processing(question_list)
                     with col2:
-                        for question, answer in zip(question_list, answers_list):
+                        for question, answer, context in zip(question_list, answers_list, context_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
+                            st.write("Context:", context)
+                            score, success, reason = red_team_obj.deep_evaluate(question,answer,context,objective,eval_metrics)
+                            st.write("Evaluation:",f"Score:{score}", f"Success:{success}", f"Reason: {reason}")
                 if st.button("Privacy and Data Security"):
                     objective = "Privacy and Data Security"
+                    eval_metrics="PrivacyDataSecurity"
                     question_list = red_team_obj.red_teamer_prompt_list(objective)
-                    answers_list = query_processing(question_list)
+                    context_list,answers_list = query_processing(question_list)
                     with col2:
-                        for question, answer in zip(question_list, answers_list):
+                        for question, answer,context in zip(question_list, answers_list, context_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
+                            st.write("Context:", context)
+                            score, success, reason = red_team_obj.deep_evaluate(question,answer,context,objective,eval_metrics)
+                            st.write("Evaluation:",f"Score:{score}", f"Success:{success}", f"Reason: {reason}")
                 if st.button("Off Topic"):
                     objective = "Off Topic"
+                    eval_metrics = "OffTopic"
                     question_list = red_team_obj.red_teamer_prompt_list(objective)
-                    answers_list = query_processing(question_list)
+                    context_list,answers_list = query_processing(question_list)
                     with col2:
-                        for question, answer in zip(question_list, answers_list):
+                        for question, answer, context in zip(question_list, answers_list, context_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
+                            st.write("Context:", context)
+                            score, success, reason = red_team_obj.deep_evaluate(question,answer,context,objective,eval_metrics)
+                            st.write("Evaluation:",f"Score:{score}", f"Success:{success}", f"Reason: {reason}")
                 if st.button("Hallucinations"):
                     objective = "Hallucinations"
+                    eval_metrics = 'HallucinationsMetric'
                     question_list = red_team_obj.red_teamer_prompt_list(objective)
-                    answers_list = query_processing(question_list)
+                    context_list, answers_list = query_processing(question_list)
                     with col2:
-                        for question, answer in zip(question_list, answers_list):
+                        for question, answer, context in zip(question_list, answers_list, context_list):
                             st.write("Q: ",question)
                             st.write("A:",answer)
-                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
-                if st.button("Excessive Agency"):
-                    objective = "Excessive Agency"
-                    question_list = red_team_obj.red_teamer_prompt_list(objective)
-                    answers_list = query_processing(question_list)
-                    with col2:
-                        for question, answer in zip(question_list, answers_list):
-                            st.write("Q: ",question)
-                            st.write("A:",answer)
-                            st.write("Evaluation:",red_team_obj.evaluate(question,answer,objective))
+                            st.write("Context:", context)
+                            score, success, reason = red_team_obj.deep_evaluate(question,answer,context,objective,eval_metrics)
+                            st.write("Evaluation:",f"Score:{score}", f"Success:{success}", f"Reason: {reason}")
+                # if st.button("Excessive Agency"):
+                #     objective = "Excessive Agency"
+                #     eval_metrics = "ExcessiveAgency"
+                #     question_list = red_team_obj.red_teamer_prompt_list(objective)
+                #     context_list, answers_list = query_processing(question_list)
+                #     with col2:
+                #         for question, answer, context in zip(question_list, answers_list, context_list):
+                #             st.write("Q: ",question)
+                #             st.write("A:",answer)
+                #             st.write("Context:", context)
+                #             score, success, reason = red_team_obj.deep_evaluate(question,answer,context,objective,eval_metrics)
+                #             st.write("Evaluation:",f"Score:{score}", f"Success:{success}", f"Reason: {reason}")
+
         with sub_tab2:
             st.write("Bias Detection Component")
             # Implement bias detection functionalities
