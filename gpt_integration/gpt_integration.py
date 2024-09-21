@@ -10,19 +10,20 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 data_obj = VectorizeData()
 
+prompt = """You are a question answering chatbot for a general physician application who analyzes user query {input} and OPTIONAL context: {context}. 
+            user query may be about an existing patient as supported by the context or a general user query about certain symptoms.
+            Based on this, you MUST provide answer to the query.
+            REMEMBER THAT YOU ARE THE HEALTHCARE PROFESSIONAL."""
+
 class GPTIntegration():
     def __init__(self) -> None:
         self.response = " "
         self.diagnosis = " "
     def generate_diagnosis(self,context, input):
-        prompt = f"""You are a question answering chatbot for a general physician application who analyzes user query {input} and OPTIONAL context: {context}. 
-                    user query may be about an existing patient as supported by the context or a general user query about certain symptoms.
-                    Based on this, you MUST provide answer to the query.
-                    REMEMBER THAT YOU ARE THE HEALTHCARE PROFESSIONAL."""
         self.response = openai.chat.completions.create(
             model="gpt-3.5-turbo-0125",  
             messages = [
-                {'role':"system", 'content':prompt}
+                {'role':"system", 'content':prompt.format(context = context, input=input)}
             ],
             temperature = 1
         )

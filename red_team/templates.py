@@ -100,3 +100,9 @@ PROMPT = """
             Provide this as list of 5 questions in JSON format, for example:
             {"questions": ["question 1", "question 2", "question 3","question 4","question 5"]}
             """
+CONTEXT = """
+            {question} MUST BE related to Healthcare domain and general physician services 
+            and it can either be about an existing patient as supported by {retrieval_context} 
+            or a general user query about certain diseases and disorders.
+            {answer} MUST BE within the scope of Healthcare domain and a general physician application
+        """
