@@ -12,3 +12,8 @@ app_revised.py
 red_team/synthetic_redteam_prompts/20240918_085019.json
 .deepeval
 .deepeval-cache.json
+chroma/
+*.sqlite
+*.bin
+.chroma/
+./chroma

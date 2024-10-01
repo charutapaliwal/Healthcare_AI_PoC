@@ -21,7 +21,7 @@ class GPTIntegration():
         self.diagnosis = " "
     def generate_diagnosis(self,context, input):
         self.response = openai.chat.completions.create(
-            model="gpt-3.5-turbo-0125",  
+            model="gpt-4o",  
             messages = [
                 {'role':"system", 'content':prompt.format(context = context, input=input)}
             ],

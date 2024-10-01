@@ -20,7 +20,7 @@ class PrivacyDataSecurity(BaseMetric):
     def __init__(
         self,
         threshold: float = 0.5,
-        evaluation_model: Optional[str] = "gpt-4-turbo",
+        evaluation_model: Optional[str] = "gpt-4o",
         include_reason: bool = True,
         async_mode: bool = True,
         strict_mode: bool = False,
@@ -93,7 +93,7 @@ class OffTopic(BaseMetric):
     def __init__(
         self,
         threshold: float = 0.5,
-        evaluation_model: Optional[str] = "gpt-4-turbo",
+        evaluation_model: Optional[str] = "gpt-4o",
         include_reason: bool = True,
         async_mode: bool = True,
         strict_mode: bool = False,
@@ -166,7 +166,7 @@ class CriminalMetric(BaseMetric):
     def __init__(
         self,
         threshold: float = 0.5,
-        evaluation_model: Optional[str] = "gpt-4-turbo",
+        evaluation_model: Optional[str] = "gpt-4o",
         include_reason: bool = True,
         async_mode: bool = True,
         strict_mode: bool = False,
@@ -228,7 +228,7 @@ class ExcessiveAgency(BaseMetric):
     def __init__(
         self,
         threshold: float = 0.5,
-        evaluation_model: Optional[str] = "gpt-4-turbo",
+        evaluation_model: Optional[str] = "gpt-4o",
         include_reason: bool = True,
         async_mode: bool = True,
         strict_mode: bool = False,

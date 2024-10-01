@@ -11,6 +11,7 @@ import chromadb
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 from red_team.red_team_integration import HealthcareRedTeam
 from data.vectorize_data import VectorizeData
+from guardrails.guardrails_integration  import generate_diagnosis
 
 warnings.filterwarnings("ignore",category=Warning)
 
@@ -69,7 +70,10 @@ try:
                 diagnosis = gpt_obj.generate_diagnosis(context,input_query)
                 st.chat_message('user').write_stream(stream_data(diagnosis))
         if st.button("Activate Guardrails"):
-            pass
+            with st.spinner("Processing query..."):
+                context = data_obj.fetch_data(input_query)
+                diagnosis = generate_diagnosis(context,input_query)
+                st.chat_message('user').write_stream(stream_data(diagnosis))
 
     with tab2:
         st.header("TWAI Components")
