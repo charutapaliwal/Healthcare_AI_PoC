@@ -29,7 +29,7 @@ class HealthcareRedTeam():
         self.metrics = ""
     def red_teamer_llm(self,degradation_objective):
         self.response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0125",  
+            model="gpt-4o",  
             messages = [
                 {'role':"system", 'content':PROMPT.format(degradation_objective=degradation_objective)}
             ],
@@ -71,7 +71,7 @@ class HealthcareRedTeam():
     
     def redteam_evaluate(self, question, answer,degradation_objective):
         self.response = openai.chat.completions.create(
-            model="gpt-3.5-turbo-0125",  
+            model="gpt-4o",  
             messages = [
                 {'role':"system", 'content':EVALUATION_PROMPT.format(
                     question = question, answer=answer, degradation_objective=degradation_objective

@@ -11,11 +11,12 @@ import chromadb
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 from red_team.red_team_integration import HealthcareRedTeam
 from data.vectorize_data import VectorizeData
+from risk_assessment.risk_questionnaire import risk_questionnaire
+
 
 warnings.filterwarnings("ignore",category=Warning)
 
 tracemalloc.start()
-
 load_dotenv()
 openai_api_key= os.getenv('OPENAI_API_KEY') 
 
@@ -179,6 +180,7 @@ try:
 
         with sub_tab3:
             st.write("Risk Questionnaire Component")
+            risk_questionnaire()
             # Implement risk questionnaire functionalities
 except Exception as e:
     print(f'Exception occured on streamlit: {str(e)}')
